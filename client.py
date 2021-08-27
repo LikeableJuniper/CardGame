@@ -52,7 +52,8 @@ def keepUpdated():
                 print("Finished")
             except Exception as e:
                 print(e)
-            recvData = None
+            finally:
+                recvData = None
 
 
 threading.Thread(target=keepUpdated).start()
@@ -111,16 +112,16 @@ for i in range(5):
     handCardSlots.append({"Button": tk.Button(root, command=partial(handButtonClick, i)), "hasImage": False})
 
 
-opponentCardSlots[0]["Button"].place(x=525, y=190, height=170, width=100)
+opponentCardSlots[0]["Button"].place(x=825, y=190, height=170, width=100)
 opponentCardSlots[1]["Button"].place(x=675, y=190, height=170, width=100)
-opponentCardSlots[2]["Button"].place(x=825, y=190, height=170, width=100)
-opponentCardSlots[3]["Button"].place(x=600, y=10, height=170, width=100)
-opponentCardSlots[4]["Button"].place(x=750, y=10, height=170, width=100)
-userCardSlots[0]["Button"].place(x=600, y=680, height=170, width=100)
-userCardSlots[1]["Button"].place(x=750, y=680, height=170, width=100)
+opponentCardSlots[2]["Button"].place(x=525, y=190, height=170, width=100)
+opponentCardSlots[3]["Button"].place(x=750, y=10, height=170, width=100)
+opponentCardSlots[4]["Button"].place(x=600, y=10, height=170, width=100)
+userCardSlots[0]["Button"].place(x=525, y=500, height=170, width=100)
+userCardSlots[1]["Button"].place(x=675, y=500, height=170, width=100)
 userCardSlots[2]["Button"].place(x=825, y=500, height=170, width=100)
-userCardSlots[3]["Button"].place(x=675, y=500, height=170, width=100)
-userCardSlots[4]["Button"].place(x=525, y=500, height=170, width=100)
+userCardSlots[3]["Button"].place(x=600, y=680, height=170, width=100)
+userCardSlots[4]["Button"].place(x=750, y=680, height=170, width=100)
 handCardSlots[0]["Button"].place(x=1200, y=500, height=170, width=100)
 handCardSlots[1]["Button"].place(x=1300, y=500, height=170, width=100)
 handCardSlots[0]["Button"].config(image=imgKlle); handCardSlots[0]["jsonindex"] = 0; handCardSlots[0]["hasImage"] = True
@@ -130,3 +131,4 @@ handCardSlots[1]["Button"].config(image=imgT3); handCardSlots[1]["jsonindex"] = 
 while True:
     if canStart:
         root.mainloop()
+        exit()
