@@ -7,12 +7,15 @@ import socket, json, threading, logging
 
 root = tk.Tk()
 root.attributes("-fullscreen", True)
+root.title("Main")
 deck = []
 handCardSlots = []
 opponentCardSlots = []
 userCardSlots = []
 handcards = []
 imgKlee = None
+endThreads = False
+
 
 #! Networking variables
 HOST = socket.gethostbyname(socket.gethostname())
@@ -23,9 +26,8 @@ clientsocket = None
 canStart = False
 
 
-
 def serverListener():
-    global HOST, PORT, recvData, clientsocket, canStart
+    global HOST, PORT, recvData, clientsocket, canStart, endThreads
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((HOST, PORT))
     s.listen(1)
@@ -34,18 +36,22 @@ def serverListener():
     while True:
         recvData = clientsocket.recv(1024)
         clientsocket, addr = s.accept()
+        if endThreads:
+            return
 
 
 def serverSender():
-    global sendData, clientsocket, canStart
+    global sendData, clientsocket, canStart, endThreads
     while True:
         if sendData is not None:
             clientsocket.sendall(sendData)
             sendData = None
+        if endThreads:
+            return
 
 
 def keepUpdated():
-    global recvData, opponentCardSlots, imgKlee
+    global recvData, opponentCardSlots, imgKlee, endThreads
     while True:
         if recvData is not None:
             print(recvData)
@@ -54,18 +60,20 @@ def keepUpdated():
             opponentCardSlots[data["index"]]["jsonindex"] = data["jsonindex"]
             opponentCardSlots[data["index"]]["hasImage"] = True
             print(json.load(open("characters.json", "r"))[data["jsonindex"]]["file"])
-            img = ImageTk.PhotoImage(Image.open(json.load(open("characters.json", "r"))[data["jsonindex"]]["file"]))
-            opponentCardSlots[data["index"]]["Button"].config(image=imgKlee)
-
-
+            img = ImageTk.PhotoImage(Image.open(json.load(open("characters.json", "r"))[data["jsonindex"]]["file"]).resize(json.load(open("characters.json", "r"))[data["jsonindex"]]["resolution"]))
+            opponentCardSlots[data["index"]]["Button"].config(image=img)
+        if endThreads:
+            return
 
 
 t1 = threading.Thread(target=keepUpdated)
 t1.setDaemon(True)
 t1.start()
+
 t2 = threading.Thread(target=serverListener)
 t2.setDaemon(True)
 t2.start()
+
 t3 = threading.Thread(target=serverSender)
 t3.setDaemon(True)
 t3.start()
@@ -74,7 +82,8 @@ imgKlee = ImageTk.PhotoImage(Image.open("Images/klee.png").resize([100, 177]))
 
 imgT3 = ImageTk.PhotoImage(Image.open("Images/Traveler.png").resize([110, 110]))
 
-selected = 0 
+selected = 0
+
 
 def handButtonClick(n):
     global selected
@@ -92,7 +101,6 @@ def buttonClick(n, ownedByUser):
             userCardSlots[n]["hasImage"] = True
             toSend = '{"index": ' + str(n) + ', "jsonindex": '+ str(handCardSlots[selected]["jsonindex"]) + '}'
             sendData = bytes(toSend.encode("utf-8"))
-            
 
 
 def exitWindow():
@@ -130,10 +138,11 @@ userCardSlots[3]["Button"].place(x=600, y=680, height=170, width=100)
 userCardSlots[4]["Button"].place(x=750, y=680, height=170, width=100)
 handCardSlots[0]["Button"].place(x=1200, y=500, height=170, width=100)
 handCardSlots[1]["Button"].place(x=1300, y=500, height=170, width=100)
-handCardSlots[0]["Button"].config(image=imgKlee); handCardSlots[0]["jsonindex"] = 0; handCardSlots[0]["hasImage"] = True
-handCardSlots[1]["Button"].config(image=imgT3); handCardSlots[1]["jsonindex"] = 1; handCardSlots[1]["hasImage"] = True
+handCardSlots[0]["Button"].config(image=imgKlee); handCardSlots[0]["jsonindex"] = 18; handCardSlots[0]["hasImage"] = True
+handCardSlots[1]["Button"].config(image=imgT3); handCardSlots[1]["jsonindex"] = 0; handCardSlots[1]["hasImage"] = True
 
 while True:
     if canStart:
         root.mainloop()
+        endThreads = True
         exit()
