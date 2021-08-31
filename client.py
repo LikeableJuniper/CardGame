@@ -5,11 +5,13 @@ import socket, json, threading, logging
 
 root = tk.Tk()
 root.attributes("-fullscreen", True)
+root.title("Client")
 deck = []
 handCardSlots = []
 opponentCardSlots = []
 userCardSlots = []
 handcards = []
+endThreads = False
 
 #! Networking variables
 HOST = socket.gethostbyname(socket.gethostname())
@@ -21,39 +23,41 @@ canStart = False
 
 
 def clientListener():
-    global HOST, PORT, recvData, s, canStart
+    global HOST, PORT, recvData, s, canStart, endThreads
     s.connect((HOST, PORT))
     print("Connected")
     canStart = True
     while True:
         recvData = s.recv(1024)
         print(recvData)
+        if endThreads:
+            return
 
 
 def clientSender():
-    global sendData, s
+    global sendData, s, endThreads
     while True:
         if sendData is not None:
             s.sendall(sendData)
             sendData = None
+        if endThreads:
+            return
 
 
 def keepUpdated():
-    global recvData, opponentCardSlots
+    global recvData, opponentCardSlots, imgKlee, endThreads
     while True:
         if recvData is not None:
-            print("Received Data {0}".format(recvData))
+            print(recvData)
             data = json.loads(recvData)
+            recvData = None
             opponentCardSlots[data["index"]]["jsonindex"] = data["jsonindex"]
             opponentCardSlots[data["index"]]["hasImage"] = True
-            try:
-                opponentCardSlots[data["index"]]["Button"].config(image=ImageTk.PhotoImage(Image.open(json.load(open("characters.json", "r"))[data["jsonindex"]]["file"]).resize([177, 100])))
-                opponentCardSlots[data["index"]]["Button"].pack()
-                print("Finished")
-            except Exception as e:
-                print(e)
-            finally:
-                recvData = None
+            print(json.load(open("characters.json", "r"))[data["jsonindex"]]["file"])
+            img = ImageTk.PhotoImage(Image.open(json.load(open("characters.json", "r"))[data["jsonindex"]]["file"]).resize(json.load(open("characters.json", "r"))[data["jsonindex"]]["resolution"]))
+            opponentCardSlots[data["index"]]["Button"].config(image=img)
+        if endThreads:
+            return
 
 
 threading.Thread(target=keepUpdated).start()
@@ -131,4 +135,5 @@ handCardSlots[1]["Button"].config(image=imgT3); handCardSlots[1]["jsonindex"] = 
 while True:
     if canStart:
         root.mainloop()
+        endThreads = True
         exit()
